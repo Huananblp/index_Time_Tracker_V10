@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบลงเวลา องค์การบริหารส่วนตำบลหัวนา V.10</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js" integrity="sha512-pumBsjNRGGqkPzKHndZMaAG+bir374sORyzM3uulLV14lN5LyykqNk8eEeUlUkB3U0M4FApyaHraT65ihJhDpQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <style>
+        /* พื้นหลังแบบ Gradient */
+        body {
+            background: linear-gradient(to right, #e0ffff, #cce0ff); /* สีฟ้าอ่อน */
+            font-family: 'Roboto', sans-serif; /* ใช้ Font Roboto */
+            margin: 0;
+            overflow: hidden; /* ซ่อน Scrollbar */
+            position: relative; /* เพิ่ม position: relative; */ 
+        }
+
+        /* จัดกึ่งกลางจอ */
+        .center-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            flex-direction: column;
+        }
+
+        /* สไตล์ข้อความสีแดง */
+        .message {
+            color: #dc3545; /* สีแดงเข้ม */
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        /* สไตล์อิโมจิขนาดใหญ่ */
+        .emoji {
+            font-size: 100px;
+            margin-bottom: 20px;
+        }
+
+        /* สไตล์ปุ่ม */
+        .action-button {
+            margin-top: 20px;
+            padding: 12px 25px;
+            font-size: 18px;
+            background-color: #007bff; /* สีน้ำเงิน */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* เพิ่มเงา */
+            transition: background-color 0.3s ease; /* เพิ่ม Transition */
+        }
+
+        /* เพิ่มเอฟเฟกต์ hover ให้ปุ่ม */
+        .action-button:hover {
+            background-color: #0056b3; /* สีน้ำเงินเข้ม */
+        }
+
+        /* Animation พื้นหลัง (วงกลม) */
+        .circle-animation {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2); /* สีขาวโปร่งแสง */
+            animation: floatAnimation 10s linear infinite; /* Animation */
+        }
+
+        @keyframes floatAnimation {
+            0% { transform: translateY(0) translateX(0); opacity: 0.1; }
+            50% { transform: translateY(-50px) translateX(100px); opacity: 0.5; }
+            100% { transform: translateY(0) translateX(0); opacity: 0.1; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- เพิ่มวงกลม Animation -->
+    <div class="circle-animation" style="width: 100px; height: 100px; top: 20%; left: 10%;"></div>
+    <div class="circle-animation" style="width: 150px; height: 150px; top: 60%; left: 80%;"></div>
+    <div class="circle-animation" style="width: 80px; height: 80px; top: 80%; left: 30%;"></div>
+
+    <div id="warning-message" class="center-screen" style="display: none;">
+        <div class="emoji">📱</div>
+        <div class="message">กรุณาลงเวลาผ่านมือถือหรือแท็บเล็ตเท่านั้น!</div>
+    </div>
+
+    <div id="location-warning" class="center-screen" style="display: none;">
+        <div class="emoji">📍</div>
+        <div class="message">กรุณาเดินทางไปยังพื้นที่ที่กำหนดเพื่อเข้าสู่ระบบ</div>
+        <div class="message"> อบต.หัวนา,สพด.ทั้ง 4 ศูนย์ </div>
+        
+        <!-- ปุ่มกรณีปฏิบัติราชการนอกสถานที่ -->
+        <a href="https://time-tracker-maps-v-10.onrender.com" class="action-button">กรณีปฏิบัติราชการนอกสถานที่ คลิ๊ก</a>
+    </div>
+
+    <script>
+            // ข้อมูลขอบเขตละติจูด ลองจิจูด ของแต่ละพื้นที่
+            const areaBounds = [
+                { north: 17.038453, south: 17.036913, east: 102.419896, west: 102.417925 }, // พื้นที่ 1 สำนักงานองค์การบริหารส่วนตำบลหัวนา /
+                { north: 17.048995, south: 17.048291, east: 102.423208, west: 102.422159 }, // พื้นที่ 2 ศูนย์ สพด.ดอนเข็ม /
+                { north: 17.050137, south: 17.049406, east: 102.354689, west: 102.353704 },   // พื้นที่ 3 ศูนย์ สพด.บ้านหนองแสงนาล้อม /
+                { north: 16.988699, south: 16.988356, east: 102.421430, west: 102.420995 }, // พื้นที่ 4 ศูนย์ สพด.บ้านดอนหัน /
+                { north: 17.031399, south: 17.030931, east: 102.339122, west: 102.338417 },  // พื้นที่ 5 ศูนย์ สพด.บ้านดินทรายอ่อน
+                { north: 16.952596, south: 16.952419, east: 102.104730, west: 102.104355 }  // พื้นที่ 6 ทดสอบการกำหนดพื้นที่
+            ];
+        // ฟังก์ชันตรวจสอบว่าตำแหน่งผู้ใช้อยู่ในพื้นที่หรือไม่
+        function isInArea(latitude, longitude) {
+            return areaBounds.some(area => {
+                return latitude <= area.north && latitude >= area.south &&
+                    longitude <= area.east && longitude >= area.west;
+            });
+        }
+
+        // Function to detect device type
+        function detectDevice() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            const isMobile = /android|iphone|ipad|ipod/i.test(userAgent);
+            return isMobile;
+        }
+
+        // getLocation
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function showPosition(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            console.log(lat, lon);
+
+            // ตรวจสอบว่าผู้ใช้อยู่ในพื้นที่ที่กำหนดหรือไม่
+            if (isInArea(lat, lon)) {
+                // ถ้าอยู่ในพื้นที่ ส่งไปยัง LIFF
+                window.open('https://liff.line.me/2006445603-aO8PqngE?lat=' + lat + '&lon=' + lon, '_self');
+            } else {
+                // ถ้าไม่อยู่ในพื้นที่ แสดงข้อความเตือน
+                document.getElementById('location-warning').style.display = 'flex'; // แสดงข้อความเตือนให้ไปยังสถานที่
+            }
+        }
+
+        function showError(error) {
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    alert("การอนุญาตตำแหน่งถูกปฏิเสธ");
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    alert("ไม่สามารถรับตำแหน่งได้");
+                    break;
+                case error.TIMEOUT:
+                    alert("หมดเวลารอการรับตำแหน่ง");
+                    break;
+                case error.UNKNOWN_ERROR:
+                    alert("เกิดข้อผิดพลาดในการรับตำแหน่ง");
+                    break;
+            }
+        }
+
+        // ตรวจสอบว่าอุปกรณ์เป็นมือถือหรือไม่
+        if (detectDevice()) {
+            // ถ้าเป็นมือถือ เรียกใช้ฟังก์ชันเพื่อรับตำแหน่ง
+            getLocation();
+        } else {
+            // ถ้าไม่ใช่มือถือ แสดงข้อความเตือน
+            document.getElementById('warning-message').style.display = 'flex'; // แสดงข้อความและอิโมจิ
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
+</body>
+
+</html>
